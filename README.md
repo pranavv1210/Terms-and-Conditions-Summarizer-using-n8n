@@ -2,7 +2,7 @@
 
 ## 🌟 Project Overview
 
-This project is a college-level demonstration of integrating Retrieval-Augmented Generation (RAG) with n8n automation workflows to create a Terms and Conditions (T\&C) summarizer. It takes a URL to a website's T\&C page, scrapes the content, cleans it to remove irrelevant elements (like HTML tags, CSS, and JavaScript), and generates a concise, plain-language summary using AI. The tool addresses the common issue of users skipping lengthy legal documents by providing a quick, understandable overview.
+This project integrates Retrieval-Augmented Generation (RAG) with n8n automation workflows to create a Terms and Conditions (T\&C) summarizer. It takes a URL to a website's T\&C page, scrapes the content, cleans it to remove irrelevant elements (like HTML tags, CSS, and JavaScript), and generates a concise, plain-language summary using AI. The tool addresses the common issue of users skipping lengthy legal documents by providing a quick, understandable overview.
 The project showcases skills in AI (RAG), automation (n8n), web scraping, data cleaning, and full-stack development (Flask for the frontend). It’s designed to be simple, scalable, and educational, making it perfect for learning how to combine open-source tools for real-world applications. The source code is available on GitHub, and you can run it locally for testing or demos.
 
 ### ✨ Key Features
