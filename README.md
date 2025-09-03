@@ -1,4 +1,4 @@
-#📜 Terms and Conditions Summarizer using n8n 
+# 📜 Terms and Conditions Summarizer using n8n 
 
 ## 🌟 Project Overview
 
