@@ -3,84 +3,141 @@
   "nodes": [
     {
       "parameters": {
+        "httpMethod": "GET",
         "path": "summarize",
-        "options": {}
+        "options": {
+          "responseCode": 200,
+          "respondImmediately": true,
+          "authentication": "none"
+        }
       },
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2.1,
-      "position": [
-        -240,
-        -16
-      ],
-      "id": "8d81736c-d589-4a39-b190-57f08ed8ff08",
       "name": "Webhook",
-      "webhookId": "ea886641-8f12-4093-95c5-c2da3850e37e"
-    },
-    {
-      "parameters": {
-        "url": "={{ $json.query.url }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        -32,
-        -16
-      ],
-      "id": "7ba4d44a-59d5-4e16-a448-afd92bbff044",
-      "name": "HTTP Request"
-    },
-    {
-      "parameters": {
-        "command": "=python run_rag.py \"{{ $node['Set'].json['output'] }}\""
-      },
-      "type": "n8n-nodes-base.executeCommand",
+      "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        384,
-        -16
-      ],
-      "id": "51972a0a-3156-45f9-b5b2-de1ef01ed84b",
-      "name": "Execute Command"
+      "position": [240, 300]
     },
     {
       "parameters": {
-        "assignments": {
-          "assignments": [
+        "values": {
+          "string": [
             {
-              "id": "c38891cd-35e0-4998-85dd-30bbcfa00970",
-              "name": "output",
-              "value": "={{ $node[\"HTTP Request\"].json[\"data\"] || \"Error: Could not fetch T&C document. Please check the URL.\" }}",
-              "type": "string"
+              "name": "url",
+              "value": "{{ $json.query.url && $json.query.url.match(/^https?:\\/\\/[^\\s/$.?#].[^\\s]*$/) ? encodeURI($json.query.url.trim()) : 'https://www.python.org/about/legal/' }}"
+            },
+            {
+              "name": "debug_url_input",
+              "value": "{{ $json.query.url || 'No URL provided in query' }}"
             }
           ]
         },
         "options": {}
       },
+      "name": "Validate URL",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        176,
-        -16
-      ],
-      "id": "ca701170-b6b7-467d-aaf9-811cf89ff858",
-      "name": "Set"
+      "typeVersion": 1,
+      "position": [360, 300]
+    },
+    {
+      "parameters": {
+        "url": "{{ $node['Validate URL'].json['url'] }}",
+        "responseFormat": "text",
+        "options": {
+          "headers": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+          ],
+          "timeout": 30,
+          "allowUnauthorizedCerts": true,
+          "followRedirects": true
+        }
+      },
+      "name": "HTTP Request2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "output",
+              "value": "{{ $node['HTTP Request2'].json['data'] && $node['HTTP Request2'].json['data'].length > 0 ? $node['HTTP Request2'].json['data'].replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi, '').replace(/<style\\b[^<]*(?:(?!<\\/style>)<[^<]*)*<\\/style>/gi, '').replace(/<[^>]+>/g, '').replace(/\\s+/g, ' ').replace(/[^\\w\\s.,!?]/g, '').trim() : 'Error: Could not fetch T&C document.' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "command": "python /home/node/run_rag.py \"{{ $node['Set'].json['output'] }}\""
+      },
+      "name": "Execute Command",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "summary",
+              "value": "{{ JSON.parse($node['Execute Command'].json['output']).summary || 'Error: No summary generated.' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Format Output",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [840, 300]
+    },
+    {
+      "parameters": {
+        "responseBody": "{{ [{'summary': $node['Format Output'].json['summary'] || 'Error: No summary generated.'}] }}",
+        "options": {
+          "responseFormat": "json"
+        }
+      },
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [960, 300]
     }
   ],
-  "pinData": {},
   "connections": {
     "Webhook": {
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Validate URL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request": {
+    "Validate URL": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
       "main": [
         [
           {
@@ -101,16 +158,28 @@
           }
         ]
       ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Output": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
-  },
-  "active": false,
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "versionId": "e2ae3ecc-f3bf-4e90-a85a-1d8b9b0b87ae",
-  "meta": {
-    "instanceId": "d61016a0562cf09b7ce88248847416cce0e4a52b3fba020957e5051e6766c86d"
-  },
-  "id": "AgsTRvXDVM0AuH2t",
-  "tags": []
+  }
 }
