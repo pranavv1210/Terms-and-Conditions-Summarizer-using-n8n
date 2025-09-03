@@ -1,0 +1,92 @@
+{
+  "name": "T&C Scraper Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "summarize",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -240,
+        -16
+      ],
+      "id": "8d81736c-d589-4a39-b190-57f08ed8ff08",
+      "name": "Webhook",
+      "webhookId": "ea886641-8f12-4093-95c5-c2da3850e37e"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.query.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -32,
+        -16
+      ],
+      "id": "7ba4d44a-59d5-4e16-a448-afd92bbff044",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c38891cd-35e0-4998-85dd-30bbcfa00970",
+              "name": "output",
+              "value": "=Issues:  'jsonOutput' expects a object but we got '{{ $node[\"HTTP Request\"].json[\"data\"] || \"Error: Could not fetch T&C document. Please check the URL.\" }}'",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        176,
+        -16
+      ],
+      "id": "ca701170-b6b7-467d-aaf9-811cf89ff858",
+      "name": "Edit Fields"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "e2ae3ecc-f3bf-4e90-a85a-1d8b9b0b87ae",
+  "meta": {
+    "instanceId": "d61016a0562cf09b7ce88248847416cce0e4a52b3fba020957e5051e6766c86d"
+  },
+  "id": "AgsTRvXDVM0AuH2t",
+  "tags": []
+}
