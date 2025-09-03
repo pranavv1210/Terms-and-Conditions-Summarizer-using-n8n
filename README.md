@@ -133,15 +133,6 @@ This process ensures the summary is accurate, concise, and based on the actual T
 - The summary appears in the textarea below.
 - For troubleshooting, check the n8n interface for node outputs or the Flask terminal for logs.
 
-## Visual Representation
-The project workflow can be visualized as a linear pipeline:
-
-- User Input (Flask) → Webhook (n8n) → URL Validation → Web Scraping → Data Cleaning → RAG Summarization → Output Formatting → Response to Flask.
-
-For a attractive LinkedIn post, I recommend a diagram showing this flow with icons (e.g., using Canva or Draw.io). 
-
-If you want me to generate a visual representation (e.g., a diagram image of the workflow), can you confirm? Yes or no? If yes, describe any specific style or details (e.g., "colorful flow chart with icons").
-
 ## Troubleshooting
 - **Invalid URL Error**: Ensure the URL expression in the **HTTP Request2** node is `{{ $node['Validate URL'].json['url'] }}`. Check the `debug_url_input` field in **Validate URL** for input issues.
 - **Webhook Not Registered**: Activate the workflow (green toggle ON).
@@ -149,7 +140,6 @@ If you want me to generate a visual representation (e.g., a diagram image of the
 - **Scraping Fails**: Try simple URLs; add headers if blocked.
 - **Flask Errors**: Check the `n8n response:` log in the Flask terminal for JSON issues.
 
-If issues persist, check n8n logs or share node outputs.
 
 ## Credits
 - Built by Pranav (pranavv1210)
