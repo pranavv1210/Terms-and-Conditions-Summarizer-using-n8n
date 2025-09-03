@@ -32,12 +32,25 @@
     },
     {
       "parameters": {
+        "command": "=python run_rag.py \"{{ $node['Set'].json['output'] }}\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        384,
+        -16
+      ],
+      "id": "51972a0a-3156-45f9-b5b2-de1ef01ed84b",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
         "assignments": {
           "assignments": [
             {
               "id": "c38891cd-35e0-4998-85dd-30bbcfa00970",
               "name": "output",
-              "value": "=Issues:  'jsonOutput' expects a object but we got '{{ $node[\"HTTP Request\"].json[\"data\"] || \"Error: Could not fetch T&C document. Please check the URL.\" }}'",
+              "value": "={{ $node[\"HTTP Request\"].json[\"data\"] || \"Error: Could not fetch T&C document. Please check the URL.\" }}",
               "type": "string"
             }
           ]
@@ -51,7 +64,7 @@
         -16
       ],
       "id": "ca701170-b6b7-467d-aaf9-811cf89ff858",
-      "name": "Edit Fields"
+      "name": "Set"
     }
   ],
   "pinData": {},
@@ -71,7 +84,18 @@
       "main": [
         [
           {
-            "node": "Edit Fields",
+            "node": "Set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
             "type": "main",
             "index": 0
           }
