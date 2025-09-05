@@ -3,30 +3,11 @@
   "nodes": [
     {
       "parameters": {
-        "httpMethod": "GET",
-        "path": "summarize",
-        "options": {
-          "responseCode": 200,
-          "respondImmediately": true,
-          "authentication": "none"
-        }
-      },
-      "name": "Webhook",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 1,
-      "position": [240, 300]
-    },
-    {
-      "parameters": {
         "values": {
           "string": [
             {
               "name": "url",
-              "value": "{{ $json.query.url && $json.query.url.match(/^https?:\\/\\/[^\\s/$.?#].[^\\s]*$/) ? encodeURI($json.query.url.trim()) : 'https://www.python.org/about/legal/' }}"
-            },
-            {
-              "name": "debug_url_input",
-              "value": "{{ $json.query.url || 'No URL provided in query' }}"
+              "value": "={{ $json.query.url && typeof $json.query.url === 'string' && $json.query.url.trim() && $json.query.url.match(/^https?:\\/\\/[^\\s/$.?#].[^\\s]*$/) ? encodeURI($json.query.url.trim()) : 'https://www.python.org/about/legal/' }}"
             }
           ]
         },
@@ -35,54 +16,28 @@
       "name": "Validate URL",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [360, 300]
+      "position": [
+        -144,
+        416
+      ],
+      "id": "4c46f14e-8c01-4daa-8d08-25432890ad74"
     },
     {
       "parameters": {
-        "url": "{{ $node['Validate URL'].json['url'] }}",
-        "responseFormat": "text",
+        "url": "={{ $node['Validate URL'].json['url'] }}",
         "options": {
-          "headers": [
-            {
-              "name": "User-Agent",
-              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-            }
-          ],
-          "timeout": 30,
           "allowUnauthorizedCerts": true,
-          "followRedirects": true
+          "timeout": 10000
         }
       },
       "name": "HTTP Request2",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [480, 300]
-    },
-    {
-      "parameters": {
-        "values": {
-          "string": [
-            {
-              "name": "output",
-              "value": "{{ $node['HTTP Request2'].json['data'] && $node['HTTP Request2'].json['data'].length > 0 ? $node['HTTP Request2'].json['data'].replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi, '').replace(/<style\\b[^<]*(?:(?!<\\/style>)<[^<]*)*<\\/style>/gi, '').replace(/<[^>]+>/g, '').replace(/\\s+/g, ' ').replace(/[^\\w\\s.,!?]/g, '').trim() : 'Error: Could not fetch T&C document.' }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "name": "Set",
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 1,
-      "position": [600, 300]
-    },
-    {
-      "parameters": {
-        "command": "python /home/node/run_rag.py \"{{ $node['Set'].json['output'] }}\""
-      },
-      "name": "Execute Command",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [720, 300]
+      "position": [
+        80,
+        416
+      ],
+      "id": "c56715e1-4035-42cb-ae8c-e753396c55d1"
     },
     {
       "parameters": {
@@ -99,33 +54,79 @@
       "name": "Format Output",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [840, 300]
+      "position": [
+        704,
+        416
+      ],
+      "id": "b6a733ce-adff-40c6-93ab-bbd662ea4179"
     },
     {
       "parameters": {
-        "responseBody": "{{ [{'summary': $node['Format Output'].json['summary'] || 'Error: No summary generated.'}] }}",
-        "options": {
-          "responseFormat": "json"
-        }
+        "path": "summarize",
+        "options": {}
       },
-      "name": "Respond to Webhook",
+      "name": "Webhook2",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [960, 300]
+      "position": [
+        -368,
+        416
+      ],
+      "id": "6df73d06-c5f9-4beb-8a17-ed2194f06cd4",
+      "webhookId": "7ed76c4b-47a1-442a-9c33-6bd7b2a21705"
+    },
+    {
+      "parameters": {
+        "command": "={{ $node['Clean Text'].json['cleaned_text'] && $node['Clean Text'].json['cleaned_text'] !== 'Error: Could not fetch T&C document.' ? '/home/node/venv/bin/python /home/node/run_rag.py \"' + $node['Clean Text'].json['cleaned_text'] + '\"' : 'echo \"Error: Invalid input for summarization\"' }}"
+      },
+      "name": "Execute Command2",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        480,
+        416
+      ],
+      "id": "a0cc90a9-3c52-452f-bd68-521b47ca825c"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ [{\"summary\": $node[\"Format Output\"].json[\"summary\"] || \"Error: No summary generated.\"}] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        912,
+        416
+      ],
+      "id": "1ec37eba-2e7b-4798-8bbc-e4cc365ac83e",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "cleaned_text",
+              "value": "={{ $json['data'] && typeof $json['data'] === 'string' && $json['data'].length > 0 ? $json['data'].replace(/<script\\b[^<]*(?:(?!<\\/script>)<[^<]*)*<\\/script>/gi, '').replace(/<style\\b[^<]*(?:(?!<\\/style>)<[^<]*)*<\\/style>/gi, '').replace(/<[^>]+>/g, '').replace(/\\s+/g, ' ').replace(/[^\\w\\s.,!?]/g, '').trim() : 'Error: Could not fetch T&C document.' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Clean Text",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [
+        272,
+        416
+      ],
+      "id": "a3416ceb-d68d-4d76-b85a-4d7159441023"
     }
   ],
+  "pinData": {},
   "connections": {
-    "Webhook": {
-      "main": [
-        [
-          {
-            "node": "Validate URL",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Validate URL": {
       "main": [
         [
@@ -141,25 +142,25 @@
       "main": [
         [
           {
-            "node": "Set",
+            "node": "Clean Text",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Set": {
+    "Webhook2": {
       "main": [
         [
           {
-            "node": "Execute Command",
+            "node": "Validate URL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Execute Command": {
+    "Execute Command2": {
       "main": [
         [
           {
@@ -174,12 +175,34 @@
       "main": [
         [
           {
-            "node": "Respond to Webhook",
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clean Text": {
+      "main": [
+        [
+          {
+            "node": "Execute Command2",
             "type": "main",
             "index": 0
           }
         ]
       ]
     }
-  }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "91c48a63-56de-4337-8627-43beed4718e5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d61016a0562cf09b7ce88248847416cce0e4a52b3fba020957e5051e6766c86d"
+  },
+  "id": "AgsTRvXDVM0AuH2t",
+  "tags": []
 }

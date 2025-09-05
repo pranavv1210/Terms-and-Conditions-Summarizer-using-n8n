@@ -45,28 +45,28 @@ def summarize_text(text, max_length=150, min_length=50):
     summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
     return summary
 
-def rag_pipeline(html_text):
-    """Run the RAG pipeline: clean, chunk, retrieve, and summarize."""
-    # Clean the input HTML text
-    cleaned_text = clean_text(html_text)
-    if not cleaned_text:
-        return "Error: No valid text extracted from the document."
-    
-    # Chunk the text for retrieval
-    chunks = chunk_text(cleaned_text)
-    if not chunks:
-        return "Error: Text is too short to summarize."
-    
-    # Create FAISS index and retrieve relevant chunks
-    index, model, chunks = create_rag_index(chunks)
+def rag_pipeline(text):
+    # Chunk text
+    chunks = [text[i:i+500] for i in range(0, len(text), 500)]
+    # Generate embeddings
+    model = SentenceTransformer('all-MiniLM-L6-v2')
+    embeddings = model.encode(chunks)
+    # Create FAISS index
+    dimension = embeddings.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings)
+    # Query
     query = "Summarize the key terms and conditions in plain language."
     query_embedding = model.encode([query])
-    _, indices = index.search(query_embedding, k=3)  # Retrieve top 3 chunks
-    relevant_chunks = [chunks[i] for i in indices[0]]
-    
-    # Combine relevant chunks and summarize
-    combined_text = " ".join(relevant_chunks)
-    summary = summarize_text(combined_text)
+    D, I = index.search(query_embedding, k=3)
+    retrieved_chunks = [chunks[i] for i in I[0]]
+    # Summarize with BART
+    tokenizer = BartTokenizer.from_pretrained('facebook/bart-large-cnn')
+    model = BartForConditionalGeneration.from_pretrained('facebook/bart-large-cnn')
+    input_text = " ".join(retrieved_chunks)
+    inputs = tokenizer(input_text, return_tensors='pt', max_length=1024, truncation=True)
+    summary_ids = model.generate(inputs['input_ids'], max_length=150, min_length=50)
+    summary = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
     return summary
 
 if __name__ == "__main__":

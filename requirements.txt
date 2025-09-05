@@ -1,6 +1,6 @@
 transformers==4.40.0
 sentence-transformers==2.7.0
-faiss-cpu==1.8.0
-requests==2.31.0
+faiss-cpu==1.12.0
 beautifulsoup4==4.12.3
+requests==2.31.0
 flask==3.0.3
