@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions Summarizer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 600px; margin: auto; }
+        input[type="text"] { width: 100%; padding: 10px; margin: 10px 0; }
+        input[type="submit"] { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        input[type="submit"]:hover { background-color: #45a049; }
+        .summary { margin-top: 20px; padding: 10px; border: 1px solid #ddd; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Terms and Conditions Summarizer</h1>
+        <form method="POST" action="/">
+            <label for="url">Enter URL:</label>
+            <input type="text" id="url" name="url" placeholder="e.g., https://www.python.org/about/legal/" required>
+            <input type="submit" value="Summarize">
+        </form>
+        {% if summary %}
+        <div class="summary {{ 'error' if summary.startswith('Error') else '' }}">
+            <h2>Summary:</h2>
+            <p>{{ summary }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

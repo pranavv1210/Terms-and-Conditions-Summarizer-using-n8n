@@ -16,10 +16,7 @@
       "name": "Validate URL",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [
-        -144,
-        416
-      ],
+      "position": [-144, 416],
       "id": "4c46f14e-8c01-4daa-8d08-25432890ad74"
     },
     {
@@ -33,10 +30,7 @@
       "name": "HTTP Request2",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        80,
-        416
-      ],
+      "position": [80, 416],
       "id": "c56715e1-4035-42cb-ae8c-e753396c55d1"
     },
     {
@@ -45,7 +39,7 @@
           "string": [
             {
               "name": "summary",
-              "value": "{{ JSON.parse($node['Execute Command'].json['output']).summary || 'Error: No summary generated.' }}"
+              "value": "{{ JSON.parse($node['Execute Command'].json['stdout']).summary || 'Error: No summary generated.' }}"
             }
           ]
         },
@@ -54,52 +48,35 @@
       "name": "Format Output",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [
-        704,
-        416
-      ],
+      "position": [704, 416],
       "id": "b6a733ce-adff-40c6-93ab-bbd662ea4179"
     },
     {
       "parameters": {
+        "httpMethod": "GET",
         "path": "summarize",
+        "responseMode": "onReceived",
         "options": {}
       },
       "name": "Webhook2",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 1,
-      "position": [
-        -368,
-        416
-      ],
-      "id": "6df73d06-c5f9-4beb-8a17-ed2194f06cd4",
-      "webhookId": "7ed76c4b-47a1-442a-9c33-6bd7b2a21705"
+      "position": [-368, 416],
+      "id": "6df73d06-c5f9-4beb-8a17-ed2194f06cd4"
     },
     {
       "parameters": {
-        "command": "={{ $node['Clean Text'].json['cleaned_text'] && $node['Clean Text'].json['cleaned_text'] !== 'Error: Could not fetch T&C document.' ? '/home/node/venv/bin/python /home/node/run_rag.py \"' + $node['Clean Text'].json['cleaned_text'] + '\"' : 'echo \"Error: Invalid input for summarization\"' }}"
-      },
-      "name": "Execute Command2",
-      "type": "n8n-nodes-base.executeCommand",
-      "typeVersion": 1,
-      "position": [
-        480,
-        416
-      ],
-      "id": "a0cc90a9-3c52-452f-bd68-521b47ca825c"
-    },
-    {
-      "parameters": {
-        "respondWith": "text",
-        "responseBody": "={{ [{\"summary\": $node[\"Format Output\"].json[\"summary\"] || \"Error: No summary generated.\"}] }}",
+        "respondWith": "json",
+        "responseBody": [
+          {
+            "summary": "{{ $node['Format Output'].json['summary'] }}"
+          }
+        ],
         "options": {}
       },
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.4,
-      "position": [
-        912,
-        416
-      ],
+      "position": [912, 416],
       "id": "1ec37eba-2e7b-4798-8bbc-e4cc365ac83e",
       "name": "Respond to Webhook1"
     },
@@ -118,11 +95,18 @@
       "name": "Clean Text",
       "type": "n8n-nodes-base.set",
       "typeVersion": 1,
-      "position": [
-        272,
-        416
-      ],
+      "position": [272, 416],
       "id": "a3416ceb-d68d-4d76-b85a-4d7159441023"
+    },
+    {
+      "parameters": {
+        "command": "={{ $node['Clean Text'].json['cleaned_text'] && $node['Clean Text'].json['cleaned_text'] !== 'Error: Could not fetch T&C document.' ? '/home/node/venv/bin/python /home/node/run_rag.py \"' + $node['Clean Text'].json['cleaned_text'] + '\"' : 'echo \"Error: Invalid input for summarization\"' }}"
+      },
+      "name": "Execute Command",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [480, 416],
+      "id": "a0cc90a9-3c52-452f-bd68-521b47ca825c"
     }
   ],
   "pinData": {},
@@ -160,17 +144,6 @@
         ]
       ]
     },
-    "Execute Command2": {
-      "main": [
-        [
-          {
-            "node": "Format Output",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Format Output": {
       "main": [
         [
@@ -186,7 +159,18 @@
       "main": [
         [
           {
-            "node": "Execute Command2",
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        [
+          {
+            "node": "Format Output",
             "type": "main",
             "index": 0
           }
@@ -198,7 +182,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "91c48a63-56de-4337-8627-43beed4718e5",
+  "versionId": "ac55bfda-4d42-405b-ab7c-1e1d87379866",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d61016a0562cf09b7ce88248847416cce0e4a52b3fba020957e5051e6766c86d"
